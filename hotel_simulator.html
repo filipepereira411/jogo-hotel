@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Simulador de Luxo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f4f6f9;
+            color: #333;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        header {
+            text-align: center;
+            border-bottom: 2px solid #eef2f5;
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+        }
+
+        header h1 {
+            color: #1a365d;
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+        }
+
+        header p {
+            color: #718096;
+            font-style: italic;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 0.9rem;
+            color: #64748b;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #0f172a;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .panel h2 {
+            font-size: 1.3rem;
+            color: #1e3a8a;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 8px;
+        }
+
+        .btn {
+            display: inline-block;
+            background: #2563eb;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+            width: 100%;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .btn:hover {
+            background: #1d4ed8;
+        }
+
+        .btn:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+        }
+
+        .btn-upgrade {
+            background: #059669;
+        }
+
+        .btn-upgrade:hover {
+            background: #047857;
+        }
+
+        .log-box {
+            background: #0f172a;
+            color: #38bdf8;
+            padding: 15px;
+            border-radius: 6px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .room-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .room-dot {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.8rem;
+            color: white;
+        }
+
+        .room-vazia { background-color: #94a3b8; }
+        .room-ocupada { background-color: #ef4444; }
+
+        .market-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .market-item:last-child {
+            border-bottom: none;
+        }
+
+        .market-info h4 {
+            font-size: 0.95rem;
+            color: #334155;
+        }
+
+        .market-info p {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Hotel Manager Simulator</h1>
+        <p>Gere o teu resort, melhora os quartos e alcança as 5 estrelas!</p>
+    </header>
+
+    <!-- DASHBOARD DE ESTATÍSTICAS -->
+    <div class="dashboard">
+        <div class="stat-card">
+            <h3>Dinheiro</h3>
+            <p id="txt-dinheiro">1000€</p>
+        </div>
+        <div class="stat-card">
+            <h3>Estrelas</h3>
+            <p id="txt-estrelas">⭐</p>
+        </div>
+        <div class="stat-card">
+            <h3>Quartos Ocupados</h3>
+            <p id="txt-ocupacao">0 / 5</p>
+        </div>
+        <div class="stat-card">
+            <h3>Preço da Diária</h3>
+            <p id="txt-diaria">50€</p>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <!-- COLUNA ESQUERDA: AÇÕES E QUARTOS -->
+        <div>
+            <div class="panel">
+                <h2>Ações de Gestão</h2>
+                <button class="btn" id="btn-marketing" onclick="fazerMarketing()">Fazer Campanha de Marketing (Custo: 150€)</button>
+                <button class="btn btn-upgrade" id="btn-comprar-quarto" onclick="comprarQuarto()">Construir Novo Quarto (Custo: 500€)</button>
+            </div>
+
+            <div class="panel">
+                <h2>Mapa do Hotel (Quartos)</h2>
+                <div class="room-grid" id="mapa-quartos">
+                    <!-- Gerado dinamicamente por JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUNA DIREITA: MELHORIAS E LOGS -->
+        <div>
+            <div class="panel">
+                <h2>Melhorias (Upgrades)</h2>
+                <div class="market-item">
+                    <div class="market-info">
+                        <h4>Wifi de Alta Velocidade</h4>
+                        <p>Diária +15€ | Atrai mais clientes</p>
+                    </div>
+                    <button class="btn btn-upgrade" style="width: auto; margin: 0;" id="btn-upgrade-wifi" onclick="comprarUpgrade('wifi', 300)">300€</button>
+                </div>
+                <div class="market-item">
+                    <div class="market-info">
+                        <h4>Piscina Aquecida</h4>
+                        <p>Diária +40€ | Aumento de reputação</p>
+                    </div>
+                    <button class="btn btn-upgrade" style="width: auto; margin: 0;" id="btn-upgrade-piscina" onclick="comprarUpgrade('piscina', 800)">800€</button>
+                </div>
+                <div class="market-item">
+                    <div class="market-info">
+                        <h4>Restaurante Buffet</h4>
+                        <p>Diária +60€ | Conquista a 3ª estrela</p>
+                    </div>
+                    <button class="btn btn-upgrade" style="width: auto; margin: 0;" id="btn-upgrade-restaurante" onclick="comprarUpgrade('restaurante', 1500)">1500€</button>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>Atividade do Hotel</h2>
+                <div class="log-box" id="log-box">
+                    [00:00] Bem-vindo ao teu novo hotel! Começas com 5 quartos vazios.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ESTADO DO JOGO
+    let jogo = {
+        dinheiro: 1000,
+        estrelas: 1,
+        precoDiaria: 50,
+        totalQuartos: 5,
+        quartos: [false, false, false, false, false], // false = livre, true = ocupado
+        upgrades: {
+            wifi: false,
+            piscina: false,
+            restaurante: false
+        },
+        chanceChegada: 30 // percentagem de chance de cliente por ciclo
+    };
+
+    // FUNÇÃO PRINCIPAL DE ATUALIZAÇÃO DA INTERFACE
+    function atualizarInterface() {
+        // Dinheiro
+        document.getElementById('txt-dinheiro').innerText = jogo.dinheiro + "€";
+        
+        // Estrelas
+        let starStr = "";
+        for(let i=0; i<jogo.estrelas; i++) starStr += "⭐";
+        document.getElementById('txt-estrelas').innerText = starStr;
+
+        // Ocupação
+        let ocupados = jogo.quartos.filter(q => q === true).length;
+        document.getElementById('txt-ocupacao').innerText = ocupados + " / " + jogo.totalQuartos;
+
+        // Diária
+        document.getElementById('txt-diaria').innerText = jogo.precoDiaria + "€";
+
+        // Botões de upgrade desativam se não houver dinheiro ou se já comprados
+        document.getElementById('btn-marketing').disabled = jogo.dinheiro < 150;
+        
+        let custoQuarto = jogo.totalQuartos * 100;
+        document.getElementById('btn-comprar-quarto').innerText = `Construir Novo Quarto (Custo: ${custoQuarto}€)`;
+        document.getElementById('btn-comprar-quarto').disabled = jogo.dinheiro < custoQuarto;
+
+        // Atualizar estados dos upgrades visuais
+        atualizarBotaoUpgrade('wifi', 300);
+        atualizarBotaoUpgrade('piscina', 800);
+        atualizarBotaoUpgrade('restaurante', 1500);
+
+        // Desenhar mapa de quartos
+        let mapa = document.getElementById('mapa-quartos');
+        mapa.innerHTML = "";
+        jogo.quartos.forEach((ocupado, index) => {
+            let dot = document.createElement('div');
+            dot.className = ocupado ? "room-dot room-ocupada" : "room-dot room-vazia";
+            dot.innerText = index + 1;
+            mapa.appendChild(dot);
+        });
+    }
+
+    function atualizarBotaoUpgrade(id, custo) {
+        let btn = document.getElementById('btn-upgrade-' + id);
+        if (jogo.upgrades[id]) {
+            btn.innerText = "Comprado";
+            btn.disabled = true;
+            btn.style.background = "#64748b";
+        } else {
+            btn.disabled = juegoDinheiroInsuficiente(custo);
+        }
+    }
+
+    function juegoDinheiroInsuficiente(custo) {
+        return jogo.dinheiro < custo;
+    }
+
+    // ADICIONAR MENSAGENS AO LOG
+    function adicionarLog(mensagem) {
+        let box = document.getElementById('log-box');
+        let d = new Date();
+        let tempo = d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+        box.innerHTML += `<br>[${tempo}] ${mensagem}`;
+        box.scrollTop = box.scrollHeight;
+    </div>
+
+    // AÇÕES DE GESTÃO
+    function fazerMarketing() {
+        if(jogo.dinheiro >= 150) {
+            jogo.dinheiro -= 150;
+            jogo.chanceChegada += 25;
+            adicionarLog("📢 Campanha de marketing lançada! Mais clientes vão aparecer em breve.");
+            atualizarInterface();
+            
+            // Efeito dura algum tempo, depois reduz
+            setTimeout(() => {
+                jogo.chanceChegada = Math.max(30, jogo.chanceChegada - 25);
+                adicionarLog("📉 O efeito do marketing terminou.");
+                atualizarInterface();
+            }, 15000);
+        }
+    }
+
+    function comprarQuarto() {
+        let custo = jogo.totalQuartos * 100;
+        if(jogo.dinheiro >= custo) {
+            jogo.dinheiro -= custo;
+            jogo.totalQuartos++;
+            jogo.quartos.push(false);
+            adicionarLog(`🔨 Quarto número ${jogo.totalQuartos} construído com sucesso!`);
+            
+            // Verificar estrelas com base no tamanho do hotel
+            verificarEstrelas();
+            atualizarInterface();
+        }
+    }
+
+    function comprarUpgrade(tipo, custo) {
+        if(jogo.dinheiro >= custo && !jogo.upgrades[tipo]) {
+            jogo.dinheiro -= custo;
+            jogo.upgrades[tipo] = true;
+            
+            if(tipo === 'wifi') {
+                jogo.precoDiaria += 15;
+                jogo.chanceChegada += 5;
+                adicionarLog("📶 Wifi de alta velocidade instalado! Diária aumentada em 15€.");
+            } else if(tipo === 'piscina') {
+                jogo.precoDiaria += 40;
+                jogo.chanceChegada += 10;
+                adicionarLog("🏊 Piscina aquecida inaugurada! Diária aumentada em 40€.");
+            } else if(tipo === 'restaurante') {
+                jogo.precoDiaria += 60;
+                adicionarLog("🍳 Restaurante Buffet aberto! Diária aumentada em 60€.");
+            }
+            
+            verificarEstrelas();
+            atualizarInterface();
+        }
+    }
+
+    function verificarEstrelas() {
+        let antigas = jogo.estrelas;
+        if(jogo.upgrades.restaurante && jogo.totalQuartos >= 10 && jogo.upgrades.piscina) {
+            jogo.estrelas = 4;
+        } else if(jogo.upgrades.restaurante && jogo.totalQuartos >= 7) {
+            jogo.estrelas = 3;
+        } else if(jogo.upgrades.wifi && jogo.totalQuartos >= 6) {
+            jogo.estrelas = 2;
+        }
+
+        if(jogo.estrelas > 4 && jogo.dinheiro > 5000) {
+            jogo.estrelas = 5; // Critério máximo
+        }
+
+        if(jogo.estrelas > antigas) {
+            adicionarLog(`🎉 Parabéns! O teu hotel subiu para ${jogo.estrelas} estrelas!`);
+        }
+    }
+
+    // GAME LOOP PRINCIPAL (Corre a cada 3 segundos)
+    setInterval(() => {
+        // 1. Clientes saem (check-out)
+        jogo.quartos.forEach((ocupado, index) => {
+            if(ocupado && Math.random() < 0.3) { // 30% de chance de sair
+                jogo.quartos[index] = false;
+                adicionarLog(`🧳 Cliente fez check-out do Quarto ${index + 1}.`);
+            }
+        });
+
+        // 2. Clientes entram (check-in)
+        let quartosLivres = [];
+        jogo.quartos.forEach((ocupado, index) => {
+            if(!ocupado) quartosLivres.push(index);
+        });
+
+        if(quartosLivres.length > 0 && Math.random() * 100 < jogo.chanceChegada) {
+            let quartoEscolhido = quartosLivres[Math.floor(Math.random() * quartosLivres.length)];
+            jogo.quartos[quartoEscolhido] = true;
+            adicionarLog(`🏨 Novo cliente fez check-in no Quarto ${quartoEscolhido + 1}!`);
+        }
+
+        // 3. Recolher faturação dos quartos ocupados
+        let ocupados = jogo.quartos.filter(q => q === true).length;
+        if(ocupados > 0) {
+            let ganho = ocupados * jogo.precoDiaria;
+            jogo.dinheiro += ganho;
+            adicionarLog(`💰 Faturação diária: Ganhaste ${ganho}€ com ${ocupados} quartos ocupados.`);
+        }
+
+        atualizarInterface();
+    }, 3000);
+
+    // Inicialização do jogo
+    atualizarInterface();
+</script>
+
+</body>
+</html>
